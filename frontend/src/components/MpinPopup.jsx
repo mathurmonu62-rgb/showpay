@@ -16,21 +16,16 @@ export default function MpinPopup({ onClose }) {
     setTimeout(() => inputRefs.current[0]?.focus(), 100)
   }, [])
 
-  // Countdown after success → close popup
+  // Countdown after success → close popup cleanly without setState-in-render warning
   useEffect(() => {
     if (!showSuccess) return
-    const interval = setInterval(() => {
-      setCountdown((c) => {
-        if (c <= 1) {
-          clearInterval(interval)
-          onClose() // Close popup after success
-          return 0
-        }
-        return c - 1
-      })
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [showSuccess, onClose])
+    if (countdown <= 0) {
+      onClose()
+      return
+    }
+    const timer = setTimeout(() => setCountdown(c => c - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [showSuccess, countdown, onClose])
 
   const handleChange = (index, value) => {
     if (!/^\d?$/.test(value)) return
@@ -130,4 +125,3 @@ export default function MpinPopup({ onClose }) {
     </div>
   )
 }
-
