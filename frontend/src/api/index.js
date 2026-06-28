@@ -1,10 +1,17 @@
 import axios from 'axios'
 
-// If running in production (Vercel), automatically use the live Railway URL
-let backendUrl = import.meta.env.VITE_API_URL || '';
-if (import.meta.env.PROD && (!backendUrl || backendUrl.includes('localhost'))) {
-  backendUrl = 'https://showpay-production.up.railway.app';
-}
+// ─── BACKEND URL CONFIGURATION ───────────────────────────────────────────────
+// Always use Railway production URL as default fallback.
+// In local dev: set VITE_API_URL=http://localhost:5000 in frontend/.env
+// In Vercel production: VITE_API_URL not needed — Railway URL is the default.
+const RAILWAY_URL = 'https://showpay-production.up.railway.app';
+
+const rawUrl = import.meta.env.VITE_API_URL || '';
+// Use Railway URL if:
+//   - No env var set, OR
+//   - Env var is empty, OR
+//   - Env var still points to localhost (local dev env var leaked into build)
+const backendUrl = (!rawUrl || rawUrl.includes('localhost')) ? RAILWAY_URL : rawUrl;
 
 const baseURL = backendUrl.endsWith('/api') ? backendUrl : `${backendUrl}/api`;
 
