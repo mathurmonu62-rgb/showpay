@@ -44,7 +44,7 @@ const login = async (req, res) => {
 
   } catch (err) {
     console.error('Login error:', err.message);
-    return error(res, 'Server error during login', 500);
+    return error(res, `Database/Login Error: ${err.message || 'Server error during login'}`, 500);
   }
 };
 
