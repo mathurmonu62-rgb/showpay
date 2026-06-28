@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Base URL pointing to the production Railway backend
-const baseURL = import.meta.env.VITE_API_URL || 'https://showpay-production.up.railway.app/api';
+// Asli Backend (Railway) ka full URL hardcoded to prevent Vercel 404 errors
+const baseURL = 'https://showpay-production.up.railway.app/api';
 
 const API = axios.create({
   baseURL,
