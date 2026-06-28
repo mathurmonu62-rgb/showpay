@@ -2,6 +2,9 @@
   "name": "showpay-root",
   "private": true,
   "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "start:backend": "cd backend && npm start",
     "build": "cd frontend && npm install && npm run build"
   }
 }

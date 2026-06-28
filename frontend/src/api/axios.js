@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-// Asli Backend (Railway) ka full URL hardcoded to prevent Vercel 404 errors
-const baseURL = 'https://showpay-production.up.railway.app/api';
+// Smart Base URL: Auto-detects Localhost vs Production Vercel/Railway
+const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const baseURL = isLocalhost ? 'http://localhost:5000/api' : 'https://showpay-production.up.railway.app/api';
 
 const API = axios.create({
   baseURL: baseURL,
@@ -11,20 +12,20 @@ const API = axios.create({
   }
 });
 
-// Attach token and force absolute Railway URL on every single request
+// Attach token and force correct environment URL on every single request
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  // GUARANTEE NO RELATIVE PATH / VERCEL 404 ERRORS CAN EVER OCCUR
-  const railwayBase = 'https://showpay-production.up.railway.app/api';
-  config.baseURL = railwayBase;
+  // GUARANTEE CORRECT API ROUTING FOR BOTH LOCALHOST AND PRODUCTION
+  const activeBase = isLocalhost ? 'http://localhost:5000/api' : 'https://showpay-production.up.railway.app/api';
+  config.baseURL = activeBase;
   if (config.url && config.url.startsWith('/')) {
-    config.url = railwayBase + config.url;
+    config.url = activeBase + config.url;
   } else if (config.url && !config.url.startsWith('http')) {
-    config.url = railwayBase + '/' + config.url;
+    config.url = activeBase + '/' + config.url;
   }
 
   return config;
