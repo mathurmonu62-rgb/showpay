@@ -1,25 +1,4 @@
-import axios from 'axios'
-
-// ─── BACKEND URL ──────────────────────────────────────────────────────────────
-// Production: always hits Railway backend directly
-// Local dev:  set VITE_API_URL=http://localhost:5000 in frontend/.env
-const BASE = 'https://showpay-production.up.railway.app/api';
-const devUrl = import.meta.env.VITE_API_URL;
-const baseURL = (devUrl && !devUrl.includes('localhost'))
-  ? (devUrl.endsWith('/api') ? devUrl : devUrl + '/api')
-  : BASE;
-
-const API = axios.create({
-  baseURL,
-  headers: { 'Content-Type': 'application/json' }
-})
-
-// Attach token to every request
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem('adminToken') || localStorage.getItem('token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
-  return config
-})
+import API from './axios';
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
 export const loginUser       = (data) => API.post('/auth/login', data)
