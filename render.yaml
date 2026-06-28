@@ -1,0 +1,33 @@
+services:
+  # ─── BACKEND SERVICE (Node.js API) ─────────────────────────────────────────
+  - type: web
+    name: showpay-backend
+    env: node
+    region: singapore # High performance region
+    buildCommand: "cd backend && npm install"
+    startCommand: "cd backend && node server.js"
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: JWT_SECRET
+        value: "showpay_jwt_secret_key_2024_very_secure"
+      - key: ADMIN_EMAIL
+        value: "admin@showpay.com"
+      - key: ADMIN_PASSWORD
+        value: "admin@0123"
+      - key: SUPABASE_URL
+        value: "https://fuqdoqqoagtlmcqpslkg.supabase.co"
+      - key: SUPABASE_SERVICE_KEY
+        value: "sb_publishable_vpExmZZBdY9v5410CmFA2Q_Ik2iKVIc"
+
+  # ─── FRONTEND SERVICE (Vite Static Site) ───────────────────────────────────
+  - type: web
+    name: showpay-frontend
+    env: static
+    region: singapore
+    buildCommand: "cd frontend && npm install && npm run build"
+    staticPublishPath: "frontend/dist"
+    routes:
+      - type: rewrite
+        source: "/*"
+        destination: "/index.html"
