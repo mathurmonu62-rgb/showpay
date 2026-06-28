@@ -1,10 +1,11 @@
 import axios from 'axios';
 
-// Base URL must come from import.meta.env.VITE_API_URL, with fallback to Railway production URL
+// Base URL pointing to the production Railway backend
 const baseURL = import.meta.env.VITE_API_URL || 'https://showpay-production.up.railway.app/api';
 
 const API = axios.create({
   baseURL,
+  withCredentials: true,
   headers: { 'Content-Type': 'application/json' }
 });
 

@@ -30,9 +30,15 @@ app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow all origins (Vercel production URLs, local dev, etc.)
-    callback(null, true);
+    const allowedOrigins = ['https://showpay-one.vercel.app', 'http://localhost:5173'];
+    // Allow allowedOrigins or any vercel domain / local dev dynamically
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Fallback to accept other production origins
+    }
   },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
