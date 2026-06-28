@@ -16,7 +16,7 @@ const { apiLimiter } = require('./middleware/rateLimit');
 
 const app = express();
 app.set('trust proxy', 1); // Trust reverse proxy (Railway/Vercel) for accurate rate limiting
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 
 // ─── CREATE UPLOAD DIRECTORIES ─────────────────────────────────────────────────
 ['uploads/slider', 'uploads/banner', 'uploads/video', 'uploads/popup'].forEach((dir) => {
@@ -29,7 +29,10 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
 app.use(cors({
-  origin: true, // Automatically reflects the requesting origin (supports all Vercel domains)
+  origin: function (origin, callback) {
+    // Allow all origins (Vercel production URLs, local dev, etc.)
+    callback(null, true);
+  },
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -84,8 +87,6 @@ app.use((err, req, res, next) => {
 });
 
 // ─── START SERVER ─────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`\n🚀 ShowPay Backend running on http://localhost:${PORT}`);
-  console.log(`📊 Admin Panel API: http://localhost:${PORT}/api/admin`);
-  console.log(`💊 Health Check: http://localhost:${PORT}/api/health\n`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log("Server running");
 });
