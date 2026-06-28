@@ -1,8 +1,8 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const path = require('path');
 const fs = require('fs');
 
 const authRoutes   = require('./routes/authRoutes');
@@ -94,5 +94,5 @@ app.use((err, req, res, next) => {
 
 // ─── START SERVER ─────────────────────────────────────────────────────────────
 app.listen(PORT, '0.0.0.0', () => {
-  console.log("Server running");
+  console.log(`Server running on port ${PORT}`);
 });
