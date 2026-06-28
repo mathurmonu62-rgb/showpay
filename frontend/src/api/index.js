@@ -1,7 +1,15 @@
 import axios from 'axios'
 
+// If running in production (Vercel), automatically use the live Railway URL
+let backendUrl = import.meta.env.VITE_API_URL || '';
+if (import.meta.env.PROD && (!backendUrl || backendUrl.includes('localhost'))) {
+  backendUrl = 'https://showpay-production.up.railway.app';
+}
+
+const baseURL = backendUrl.endsWith('/api') ? backendUrl : `${backendUrl}/api`;
+
 const API = axios.create({
-  baseURL: '/api',
+  baseURL,
   headers: { 'Content-Type': 'application/json' }
 })
 

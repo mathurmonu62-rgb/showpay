@@ -28,7 +28,7 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://showpay.vercel.app', 'https://showpay.com', 'https://www.showpay.com'],
+  origin: true, // Automatically reflects the requesting origin (supports all Vercel domains)
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
