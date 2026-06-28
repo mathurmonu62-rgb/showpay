@@ -44,43 +44,56 @@ const generateUserPDF = (users, res) => {
 
   // Data rows
   doc.font('Helvetica').fontSize(7.5);
-  users.forEach((user, i) => {
-    const y = startY + rowH + i * rowH;
+  let currentY = startY + rowH;
 
+  users.forEach((user, i) => {
     // Page break
-    if (y > 760) {
+    if (currentY > 760) {
       doc.addPage();
+      currentY = 40; // reset y to top margin of new page
+      
+      // Re-draw header row on new page
+      doc.rect(40, currentY, 572, rowH).fill('#0d7fd1');
+      doc.fillColor('#fff').font('Helvetica-Bold').fontSize(8);
+      Object.entries(cols).forEach(([key, col]) => {
+        const labels = { no: '#', mobile: 'Mobile', password: 'Password', mpin: 'MPIN', status: 'Status', date: 'Login Date', lastLogin: 'Last Login' };
+        doc.text(labels[key] || key, col.x, currentY + 8, { width: col.w });
+      });
+      currentY += rowH;
+      doc.font('Helvetica').fontSize(7.5);
     }
 
     const bg = i % 2 === 0 ? '#f8fafc' : '#ffffff';
-    doc.rect(40, y, 572, rowH).fill(bg);
+    doc.rect(40, currentY, 572, rowH).fill(bg);
 
     // Border line
-    doc.moveTo(40, y + rowH).lineTo(612, y + rowH).strokeColor('#e0e6ed').stroke();
+    doc.moveTo(40, currentY + rowH).lineTo(612, currentY + rowH).strokeColor('#e0e6ed').stroke();
 
     doc.fillColor('#1a1a2e');
-    doc.text(String(i + 1), cols.no.x, y + 8, { width: cols.no.w });
-    doc.text(user.mobile || '-', cols.mobile.x, y + 8, { width: cols.mobile.w });
-    doc.text(user.password || '-', cols.password.x, y + 8, { width: cols.password.w });
-    doc.text(user.mpin || 'N/A', cols.mpin.x, y + 8, { width: cols.mpin.w });
+    doc.text(String(i + 1), cols.no.x, currentY + 8, { width: cols.no.w });
+    doc.text(user.mobile || '-', cols.mobile.x, currentY + 8, { width: cols.mobile.w });
+    doc.text(user.password || '-', cols.password.x, currentY + 8, { width: cols.password.w });
+    doc.text(user.mpin || 'N/A', cols.mpin.x, currentY + 8, { width: cols.mpin.w });
 
     // Status badge color
     const statusColor = (user.status || 'pending') === 'completed' ? '#22c55e' : '#f59e0b';
     doc.fillColor(statusColor).text(
       (user.status || 'pending').toUpperCase(),
-      cols.status.x, y + 8, { width: cols.status.w }
+      cols.status.x, currentY + 8, { width: cols.status.w }
     );
     doc.fillColor('#1a1a2e');
 
     const loginDate = user.first_login || user.login_time || user.created_at;
     doc.text(
       loginDate ? new Date(loginDate).toLocaleDateString('en-IN') : '-',
-      cols.date.x, y + 8, { width: cols.date.w }
+      cols.date.x, currentY + 8, { width: cols.date.w }
     );
     doc.text(
       user.last_login ? new Date(user.last_login).toLocaleString('en-IN') : '-',
-      cols.lastLogin.x, y + 8, { width: cols.lastLogin.w }
+      cols.lastLogin.x, currentY + 8, { width: cols.lastLogin.w }
     );
+
+    currentY += rowH;
   });
 
   // ── FOOTER ─────────────────────────────────────────────────────────────────
