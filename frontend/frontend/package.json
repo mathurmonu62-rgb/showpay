@@ -1,0 +1,7 @@
+{
+  "name": "showpay-dummy",
+  "private": true,
+  "scripts": {
+    "build": "cd .. && npm install && npm run build"
+  }
+}
