@@ -16,8 +16,8 @@ const hashMpin = (mpin) => {
 
 // ─── INPUT SANITIZATION (Prevent XSS / Code Injection) ────────────────────────
 const sanitizeInput = (input) => {
-  if (typeof input !== 'string') return '';
-  return input
+  if (input === null || input === undefined) return '';
+  return String(input)
     .replace(/<[^>]*>?/gm, '') // Strip HTML tags
     .replace(/[<>&"']/g, '')    // Strip dangerous characters
     .trim();

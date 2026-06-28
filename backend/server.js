@@ -15,6 +15,7 @@ const reportRoutes = require('./routes/reportRoutes');
 const { apiLimiter } = require('./middleware/rateLimit');
 
 const app = express();
+app.set('trust proxy', 1); // Trust reverse proxy (Railway/Vercel) for accurate rate limiting
 const PORT = process.env.PORT || 5000;
 
 // ─── CREATE UPLOAD DIRECTORIES ─────────────────────────────────────────────────
